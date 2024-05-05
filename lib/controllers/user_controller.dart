@@ -7,10 +7,10 @@ import '../models/user.dart';
 class UserController extends GetxController {
   Rx<UserModel> _userModel = UserModel().obs;
 
-
-
   UserModel get user => _userModel.value;
+
   set user(UserModel value) => this._userModel.value = value;
+
   void clear() {
     _userModel.value = UserModel();
   }
@@ -18,14 +18,16 @@ class UserController extends GetxController {
   @override
   onInit() async {
     super.onInit();
-    _userModel.value = await getUCurrentUser();
-
+    // _userModel.value = await getUCurrentUser();
   }
 
   Future<UserModel> getUCurrentUser() async {
-    var userdata = await FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid).get();
-    UserModel user =fromDocumentSnapshot(userdata);
-   return user;
+    var userdata = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .get();
+    UserModel user = fromDocumentSnapshot(userdata);
+    return user;
   }
 
   UserModel fromDocumentSnapshot(DocumentSnapshot doc) {

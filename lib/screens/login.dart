@@ -5,6 +5,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../controllers/auth_controller.dart';
 import '../widgets/input_field.dart';
 import 'auth.dart';
+import 'face/face_detector_view.dart';
 
 
 class Login extends StatefulWidget {
@@ -61,6 +62,7 @@ class _LoginState extends State<Login> {
                 type: TextInputType.text,
                 obscure: true,
               ),
+
               Align(
                 alignment: Alignment.bottomRight,
                 child: Padding(
@@ -84,8 +86,22 @@ class _LoginState extends State<Login> {
                   'Dont have an account ? Sign up there',
                   style: TextStyle(color: Colors.red, fontSize: 18.0),
                 ),
-              )
-            ]),
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 40.0),
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Get.to(()=>FaceDetectorView());
+                    },
+                    label: Text('Detect Face'),
+                    icon: Icon(Icons.verified_user),
+                  ),
+                ),
+              ),
+            ]
+        ),
       )),
     );
   }
