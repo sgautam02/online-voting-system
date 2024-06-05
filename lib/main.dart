@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
       home: Root(),
       initialRoute: '/',
       routes: {
-        'auth': (context) => AuthScreen(),
+        // 'auth': (context) => AuthScreen(),
         'settings': (context) => ElectChain(),
         'profile': (context) => ElectChain(),
         'create_vote': (context) => NewVote(),

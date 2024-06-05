@@ -70,7 +70,7 @@ class _VoteDashboardState extends State<VoteDashboard> {
       body: StreamBuilder(
         stream: _firestore
             .collection("users")
-            .doc(Get.find<UserController>().user.id)
+            .doc(Get.find<UserController>().currentUser!.uid)
             .collection("elections")
             .doc(Get.arguments[0].id.toString())
             .snapshots(),
@@ -141,18 +141,6 @@ class _VoteDashboardState extends State<VoteDashboard> {
                       ),
                     ],
                   ),
-                  actions: [
-                    IconButton(
-                        tooltip: 'Copy election access code',
-                        icon: Icon(
-                          Icons.content_copy,
-                          color: Colors.white,
-                        ),
-                        onPressed: () {
-                          Get.find<ElectionController>()
-                              .copyAccessCode(election["accessCode"]);
-                        })
-                  ],
                 ),
                 SliverPadding(
                   padding: const EdgeInsets.only(top: 10.0, bottom: 30.0),
@@ -163,7 +151,10 @@ class _VoteDashboardState extends State<VoteDashboard> {
                         Column(
                           children: [
                             ElevatedButton.icon(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Get.find<ElectionController>()
+                                      .copyAccessCode(election["accessCode"]);
+                                },
                                 icon: Icon(
                                   Icons.copy,
                                   color: Colors.white,
@@ -241,13 +232,18 @@ class _VoteDashboardState extends State<VoteDashboard> {
                                           ),
                                           label: Text('Stop Election')),
                                       ElevatedButton.icon(
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            Get.find<ElectionController>()
+                                                .copyAccessCode(election["accessCode"]);
+                                          },
                                           icon: Icon(
                                             Icons.copy,
                                           ),
                                           label: Text('Copy Access code')),
                                       ElevatedButton.icon(
-                                          onPressed: () {},
+                                          onPressed: () {
+
+                                          },
                                           icon: Icon(
                                             Icons.bar_chart,
                                             semanticLabel: 'Chart',

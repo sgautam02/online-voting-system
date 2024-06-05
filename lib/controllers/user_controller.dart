@@ -7,6 +7,8 @@ import '../models/user.dart';
 class UserController extends GetxController {
   Rx<UserModel> _userModel = UserModel().obs;
 
+  User ? currentUser = FirebaseAuth.instance.currentUser;
+
   UserModel get user => _userModel.value;
 
   set user(UserModel value) => this._userModel.value = value;
@@ -35,7 +37,7 @@ class UserController extends GetxController {
     _user.id = doc.id;
     _user.email = doc['email'];
     _user.name = doc['name'];
-    _user.phoneNumber = doc['phonenumber'];
+    _user.phoneNumber = doc['phoneNumber'];
     _user.ownedElections = doc['owned_elections'];
     _user.avatar = doc['avatar'];
     return _user;

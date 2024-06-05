@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/user.dart';
 import '../services/database.dart';
+import '../utils/root.dart';
 
 
 class AuthController extends GetxController {
@@ -17,35 +18,36 @@ class AuthController extends GetxController {
   @override
   // ignore: must_call_supe
 
-  void createUser(imgURL, name, phoneNumber, email, password) async {
+  Future<void> createUser(imgURL, name, phoneNumber, email, password,image,faceFeature) async {
     try {
       var _authResult = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
 
-      //Create a user in firestore
       UserModel _user = UserModel(
           id: _authResult.user!.uid,
           avatar: imgURL,
           name: name,
           phoneNumber: phoneNumber,
-          email: email);
+          email: email,
+          image: image,
+        faceFeatures: faceFeature
+      );
       if (await DataBase().createNewUser(_user)) {
         Get.find<UserController>().user = _user;
-        Get.back();
+        Get.to(Root());
       }
     } catch (err) {
       Get.snackbar('Processing Error', err.toString());
     }
   }
 
-  void loginUser(String email, String password) async {
+  Future<void> loginUser(String email, String password) async {
     try {
       var _authResult = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
 
       Get.find<UserController>().user =
           await DataBase().getUser(_authResult.user!.uid);
-      Get.back();
     } catch (err) {
       Get.snackbar('Processing Error', err.toString());
     }

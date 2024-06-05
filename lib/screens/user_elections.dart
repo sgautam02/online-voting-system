@@ -18,10 +18,11 @@ class UserElections extends StatelessWidget {
       body: StreamBuilder(
         stream: _firestore
             .collection("users")
-            .doc(Get.find<UserController>().user.id)
+            .doc(Get.find<UserController>().currentUser!.uid)
             .snapshots(),
         // ignore: missing_return
         builder: (context, snapshot) {
+          print(snapshot.data!.data());
           if (snapshot.hasData) {
             var elections = snapshot.data!['owned_elections'];
             if (elections.length < 1) {
@@ -69,7 +70,7 @@ class UserElections extends StatelessWidget {
                   return StreamBuilder(
                     stream: _firestore
                         .collection("users")
-                        .doc(Get.find<UserController>().user.id)
+                        .doc(Get.find<UserController>().currentUser!.uid)
                         .collection("elections")
                         .doc(elections[index])
                         .snapshots(),

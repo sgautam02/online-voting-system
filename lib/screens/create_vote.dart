@@ -75,41 +75,22 @@ class NewVote extends StatelessWidget {
               ),
             ),
           ),
-          // SliverPadding(
-          //     padding: const EdgeInsets.all(15.0),
-          //     sliver: SliverList(
-          //         delegate: SliverChildBuilderDelegate(
-          //             (BuildContext context, int index) {
-          //       return Obx(() => Container(
-          //             margin: const EdgeInsets.all(5.0),
-          //             decoration: BoxDecoration(
-          //                 color: Colors.white,
-          //                 borderRadius: BorderRadius.circular(10.0)),
-          //             child: ListTile(
-          //               leading: CircleAvatar(
-          //                 backgroundImage: AssetImage('assets/icons/user.jpeg'),
-          //               ),
-          //               title:
-          //                   Text(_electionController.candidates[index]['name']),
-          //               subtitle: Text(_electionController.candidates[index]
-          //                   ['description']),
-          //               trailing: IconButton(
-          //                   icon: Icon(
-          //                     Icons.delete,
-          //                     color: Colors.red,
-          //                   ),
-          //                   onPressed: null),
-          //             ),
-          //           ));
-          //     }, childCount: _electionController.candidates.length))),
           SliverToBoxAdapter(
-            child: Container(
-              margin:
-                  const EdgeInsets.only(left: 55.0, bottom: 20.0, right: 55.0),
-              decoration: BoxDecoration(
-                  color: Colors.indigo[400],
-                  borderRadius: BorderRadius.circular(18.0)),
-              child: ElevatedButton(
+            child: GestureDetector(
+              onTap: () async {
+                await _electionController.createElection(
+                  _electionNameController.text,
+                  _electionDescriptionController.text,
+                  _electionStartDateController.text,
+                  _electionEndDateController.text,
+                );
+              },
+              child: Container(
+                margin: const EdgeInsets.only(
+                    left: 55.0, bottom: 20.0, right: 55.0),
+                decoration: BoxDecoration(
+                    color: Colors.indigo[400],
+                    borderRadius: BorderRadius.circular(18.0)),
                 child: Column(
                   children: [
                     Text(
@@ -123,24 +104,6 @@ class NewVote extends StatelessWidget {
                     ),
                   ],
                 ),
-                onPressed: () async {
-                  await _electionController.createElection(
-                    _electionNameController.text,
-                    _electionDescriptionController.text,
-                    _electionStartDateController.text,
-                    _electionEndDateController.text,
-                  );
-                  // if (_creationResult == null) {
-                  //   Get.snackbar('PROCESSING ERROR',
-                  //       'Error while creating the election');
-                  // }
-                  // if (_creationResult != null) {
-                  //   print('Returned Value is $_creationResult');
-                  //   Get.to(AddCandidate(), arguments: _creationResult);
-                  // }
-
-                  // Get.to(AddVoteOptionWidget());
-                },
               ),
             ),
           ),

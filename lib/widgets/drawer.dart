@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -9,6 +10,7 @@ import '../screens/user_elections.dart';
 import '../services/database.dart';
 
 ElectionModel? election;
+
 void getElection(userId, electionId) async {
   election = await DataBase().getElection(userId, electionId);
 }
@@ -33,31 +35,40 @@ class _CustomDrawerState extends State<CustomDrawer> {
           child: Container(
         color: Colors.indigo[100],
         child: ListView(padding: EdgeInsets.all(0.0), children: <Widget>[
-          UserAccountsDrawerHeader(
-            accountName: Obx(
-              () => Text(Get.find<UserController>().user.name!),
-            ),
-            accountEmail: Obx(
-              () => Text(Get.find<UserController>().user.email!,
-                  style: TextStyle(color: Colors.white54)),
-            ),
-            currentAccountPicture: CircleAvatar(
-                radius: 60.0,
-                backgroundImage:
-                    NetworkImage(Get.find<UserController>().user.avatar!)),
-            otherAccountsPictures: <Widget>[
-              Icon(
-                Icons.notification_important,
-                color: Colors.white,
-              )
-            ],
-            // onDetailsPressed: () {},
-            decoration: BoxDecoration(
-                gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Colors.indigo, Colors.blue])),
-          ),
+          FutureBuilder(
+              future: Get.find<UserController>().getUCurrentUser(),
+              builder: (context, snap) {
+                if (snap.hasError) {
+                  print(snap.stackTrace);
+                  return Text('Something went wrong');
+                } else if (snap.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                } else {
+                  var user = snap.data!;
+                  return UserAccountsDrawerHeader(
+                    accountName: Text(user.name!),
+                    accountEmail: Text(user.email!,
+                        style: TextStyle(color: Colors.white54)),
+                    currentAccountPicture: CircleAvatar(
+                        radius: 60.0,
+                        backgroundImage: NetworkImage(user.avatar!)),
+                    otherAccountsPictures: <Widget>[
+                      Icon(
+                        Icons.notification_important,
+                        color: Colors.white,
+                      )
+                    ],
+                    // onDetailsPressed: () {},
+                    decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Colors.indigo, Colors.blue])),
+                  );
+                }
+              }),
           ListTile(
             title: Text('Home'),
             subtitle: Text('Go to homepage'),

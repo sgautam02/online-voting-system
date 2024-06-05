@@ -18,13 +18,7 @@ class DataBase {
 
   Future<bool> createNewUser(UserModel user) async {
     try {
-      await _firestore.collection('users').doc(user.id).set({
-        "name": user.name,
-        "phonenumber": user.phoneNumber,
-        "email": user.email,
-        "owned_elections": [],
-        "avatar": user.avatar
-      });
+      await _firestore.collection('users').doc(user.id).set(user.toMap());
       return true;
     } catch (err) {
       print(err.toString());
@@ -47,7 +41,7 @@ class DataBase {
     try {
       await _firestore
           .collection('users')
-          .doc(_uid)
+          .doc(Get.find<UserController>().currentUser!.uid)
           .collection('elections')
           .add({
         'options': [],
@@ -59,7 +53,7 @@ class DataBase {
         'voted': [],
         'owner': election.owner
       }).then((reference) {
-        _firestore.collection('users').doc(_uid).update({
+        _firestore.collection('users').doc(Get.find<UserController>().currentUser!.uid).update({
           "owned_elections": FieldValue.arrayUnion([reference.id])
         });
 
@@ -76,7 +70,7 @@ class DataBase {
     try {
       await _firestore
           .collection('users')
-          .doc(_uid)
+          .doc(Get.find<UserController>().currentUser!.uid)
           .collection('elections')
           .doc(_electionId)
           .update({

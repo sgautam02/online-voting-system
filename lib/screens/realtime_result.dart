@@ -5,8 +5,10 @@ import 'package:flutter/widgets.dart';
 import 'dart:math';
 
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:vote_secure/controllers/controllers.dart';
 
 import '../models/election_model.dart';
+import 'home_screen.dart';
 
 class RealtimeResult extends StatefulWidget {
   @override
@@ -14,9 +16,8 @@ class RealtimeResult extends StatefulWidget {
 }
 
 class _RealtimeResultState extends State<RealtimeResult> {
-  ElectionModel election = Get.arguments;
 
-  int? totalVoteCount() {
+  int? totalVoteCount(election) {
     int? totalcount = 0;
     for (var candidate in election.options!) {
       totalcount =(totalcount! + candidate['count']) as int?;
@@ -50,7 +51,7 @@ class _RealtimeResultState extends State<RealtimeResult> {
   }
 
   //Functions that will be in charge to generate charts data
-  List<charts.Series<Vote, String>> _voteData() {
+  List<charts.Series<Vote, String>> _voteData(election) {
     List<Vote> voteData = [];
     if (election.options != null) {
       for (var candidate in election.options!) {
@@ -80,66 +81,84 @@ class _RealtimeResultState extends State<RealtimeResult> {
   @override
   Widget build(BuildContext context) {
     //Calling the function to initiate data
-    List<charts.Series<Vote, String>> seriesList = [];
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            title: Text(
-              "REAL TIME RESULT",
-              style: GoogleFonts.yanoneKaffeesatz(
-                  fontSize: 25.0,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold),
-            ),
-          ),
-          SliverToBoxAdapter(
-              child: SizedBox(
-            height: 20.0,
-          )),
-          SliverToBoxAdapter(
-            child: Container(
-              height: 200,
-              child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: election.options!.map((option) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: _buildCandidateResult(
-                          option['avatar'],
-                          option['name'],
-                          candidatePercentage(
-                              totalVoteCount()!, option['count'])),
-                    );
-                  }).toList()),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 20.0,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Container(
-              height: MediaQuery.of(context).size.height * 0.40,
-              width: MediaQuery.of(context).size.width,
-              //color: Colors.black12,
-              child: charts.BarChart(
-                seriesList,
-                animate: true,
-                behaviors: [
-                  charts.DatumLegend(
-                    outsideJustification:
-                    charts.OutsideJustification.middleDrawArea,
-                    horizontalFirst: false,
-                    desiredMaxRows: 2,
-                  )
-                ],
+
+    return FutureBuilder<ElectionModel>(
+      future: Get.find<ElectionController>().getElectionData(Get.arguments['owner_uid'], Get.arguments['election_id']),
+      builder: (context,snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(body: Center(child: CircularProgressIndicator())); // Show a loading spinner while waiting
+        } else if (snapshot.hasError) {
+          return Scaffold(body: Center(child: Text('Error: ${snapshot.error}'))); // Show an error message if the future fails
+        } else{
+          List<charts.Series<Vote, String>> seriesList = _voteData(snapshot.data!);
+          ElectionModel election = snapshot.data!;
+          return Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+          automaticallyImplyLeading:false,
+                title: Text(
+                  "REAL TIME RESULT",
+                  style: GoogleFonts.yanoneKaffeesatz(
+                      fontSize: 25.0,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold),
+                ),
               ),
-            ),
-          )
-        ],
-      ),
+              SliverToBoxAdapter(
+                  child: SizedBox(
+                height: 20.0,
+              )),
+              SliverToBoxAdapter(
+                child: Container(
+                  height: 200,
+                  child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: election.options!.map((option) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: _buildCandidateResult(
+                              option['avatar'],
+                              option['name'],
+                              candidatePercentage(
+                                  totalVoteCount(election)!, option['count'])),
+                        );
+                      }).toList()),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 20.0,
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 0.40,
+                  width: MediaQuery.of(context).size.width,
+                  child: seriesList != null && seriesList.isNotEmpty
+                      ? charts.BarChart(
+                    seriesList,
+                    animate: true,
+                    behaviors: [
+                      charts.DatumLegend(
+                        outsideJustification:
+                        charts.OutsideJustification.middleDrawArea,
+                        horizontalFirst: false,
+                        desiredMaxRows: 2,
+                      )
+                    ],
+                  )
+                      : Container(
+                    // Placeholder widget or message when seriesList is empty or null
+                    child: Text('No data available'),
+                  ),
+                ),
+              )
+            ],
+          ),
+        );
+        }
+      }
     );
   }
 }

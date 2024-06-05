@@ -1,15 +1,23 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:vote_secure/models/models.dart';
 import 'dart:io';
-
 import '../controllers/auth_controller.dart';
+import '../face_auth/register_face/register_face_view.dart';
 import '../widgets/input_field.dart';
 import 'login.dart';
 
 class AuthScreen extends StatefulWidget {
+  final String image;
+  final FaceFeatures faceFeatures;
+
+  AuthScreen({required this.image, required this.faceFeatures});
+
   @override
   _AuthScreen createState() => _AuthScreen();
 }
@@ -29,6 +37,7 @@ class _AuthScreen extends State<AuthScreen> {
   double progressPercent = 0.0;
   var imgURL;
   var futureImgURL;
+
   @override
   void initState() {
     super.initState();
@@ -132,6 +141,7 @@ class _AuthScreen extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Uint8List bytes = base64.decode(widget.image);
     Get.put(AuthController());
     return Scaffold(
         backgroundColor: Colors.indigo[100],
@@ -161,72 +171,47 @@ class _AuthScreen extends State<AuthScreen> {
                 height: 10.0,
               ),
               InkWell(
-                onTap: () {
-                  Get.bottomSheet(
-                      Container(
-                        color: Colors.white,
-                        height: 70.0,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            ElevatedButton.icon(
-                                onPressed: () {
-                                  ImageSource _source = ImageSource.gallery;
-                                  pickImage(_source);
-                                },
-                                icon: Icon(
-                                  Icons.image_outlined,
-                                  color: Colors.red,
-                                ),
-                                label: Text("Pick from Gallery")),
-                            ElevatedButton.icon(
-                                onPressed: () {
-                                  ImageSource _source = ImageSource.camera;
-                                  pickImage(_source);
-                                },
-                                icon: Icon(
-                                  Icons.camera_enhance,
-                                  color: Colors.green,
-                                ),
-                                label: Text("Take picture with Camera"))
-                          ],
-                        ),
-                      ),
-                      settings: RouteSettings(arguments: Get.arguments));
-                  setState(() {
-                    _imagePicked = null;
-                  });
-                },
-                child: FutureBuilder(
-                    future: Future.value(futureImgURL),
-                    builder: (context, state) {
-                      if (state.hasData) {
-                        return CircleAvatar(
-                          backgroundImage: NetworkImage(state.data.toString()),
-                          radius: 80.0,
-                        );
-                      }
-                      return CircleAvatar(
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                  onTap: () {
+                    Get.bottomSheet(
+                        Container(
+                          color: Colors.white,
+                          height: 70.0,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              Center(
-                                child: Icon(
-                                  Icons.account_circle,
-                                  size: 84.0,
-                                ),
-                              ),
-                              Center(
-                                child: Text("Add Image"),
-                              )
+                              ElevatedButton.icon(
+                                  onPressed: () {
+                                    ImageSource _source = ImageSource.gallery;
+                                    pickImage(_source);
+                                  },
+                                  icon: Icon(
+                                    Icons.image_outlined,
+                                    color: Colors.red,
+                                  ),
+                                  label: Text("Pick from Gallery")),
+                              ElevatedButton.icon(
+                                  onPressed: () {
+                                    ImageSource _source = ImageSource.camera;
+                                    pickImage(_source);
+                                  },
+                                  icon: Icon(
+                                    Icons.camera_enhance,
+                                    color: Colors.green,
+                                  ),
+                                  label: Text("Take picture with Camera"))
                             ],
                           ),
                         ),
-                        radius: 80.0,
-                      );
-                    }),
-              ),
+                        settings: RouteSettings(arguments: Get.arguments));
+
+                    setState(() {
+                      _imagePicked = null;
+                    });
+                  },
+                  child: CircleAvatar(
+                    backgroundImage: MemoryImage(bytes),
+                    radius: 80.0,
+                  )),
               const SizedBox(
                 height: 15.0,
               ),
@@ -235,12 +220,12 @@ class _AuthScreen extends State<AuthScreen> {
                 child: Column(
                   children: [
                     InputField(
-                      controller: _nameController,
-                      hintText: 'Enter your name',
-                      prefixIcon: Icons.account_circle,
-                      type: TextInputType.text,
-                      obscure: false,
-                    ),
+                        controller: _nameController,
+                        hintText: 'Enter your name',
+                        prefixIcon: Icons.account_circle,
+                        type: TextInputType.text,
+                        obscure: false,
+                        ),
                     InputField(
                       controller: _phonenumberController,
                       hintText: 'Enter your phone number',
@@ -291,22 +276,45 @@ class _AuthScreen extends State<AuthScreen> {
                       alignment: Alignment.bottomRight,
                       child: Padding(
                         padding: const EdgeInsets.only(right: 40.0),
-                        child: ElevatedButton.icon(
+                        child:ElevatedButton.icon(
                           onPressed: () {
+                            if (_formKey.currentState!.validate()) {
+
+                            }
+
                             imgURL = imgURL ??
                                 "https://firebasestorage.googleapis.com/v0/b/electchain-8ea68.appspot.com/o/users_pics%2F2021-02-01%2000%3A13%3A24.350509?alt=media&token=5fb3c9e5-29da-4357-9f55-5de21cfa76b9";
                             Get.find<AuthController>().createUser(
-                                imgURL,
-                                _nameController.text,
-                                _phonenumberController.text,
-                                _emailController.text,
-                                _passwordController.text);
+                              imgURL,
+                              _nameController.text,
+                              _phonenumberController.text,
+                              _emailController.text,
+                              _passwordController.text,
+                              widget.image,
+                              widget.faceFeatures,
+                            ).then((value) => null);
 
-                            //Get.snackbar('SUCEESS', 'user created');
+                            Get.snackbar('Success', 'User created',
+                                snackPosition: SnackPosition.BOTTOM);
                           },
                           label: Text('SIGN UP'),
                           icon: Icon(Icons.verified_user),
                         ),
+
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 40.0),
+                        child:ElevatedButton.icon(
+                          onPressed: () {
+                            Get.find<AuthController>().signOut();
+                          },
+                          label: Text('SIGN UP'),
+                          icon: Icon(Icons.verified_user),
+                        ),
+
                       ),
                     ),
                     SizedBox(

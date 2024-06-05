@@ -49,7 +49,7 @@ class ElectionController extends GetxController {
         accessCode: getRandomString(6),
         name: name,
         voted: [],
-        owner: Get.find<UserController>().user.id,
+        owner: Get.find<UserController>().currentUser!.uid,
         description: description,
         startDate: startDate,
         endDate: endDate);
@@ -61,7 +61,6 @@ class ElectionController extends GetxController {
   }
 
   copyAccessCode(String code) {
-    //how to copy to the clipboard using dart
     Clipboard.setData(ClipboardData(text: code));
     Get.snackbar(
       'COPYING ACCESS CODE',
@@ -82,8 +81,13 @@ class ElectionController extends GetxController {
     );
   }
 
-  getElection(String _uid, String _electionID) {
+   getElection(String _uid, String _electionID) {
     DataBase().getElection(_uid, _electionID).then(
         (_election) => Get.find<ElectionController>().election = _election as ElectionModel) ;
+
+  }
+  Future<ElectionModel> getElectionData(String _uid, String _electionID) async {
+    ElectionModel data = await DataBase().getElection(_uid, _electionID);
+    return data;
   }
 }

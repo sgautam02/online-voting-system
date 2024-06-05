@@ -16,8 +16,9 @@ class CastVote extends StatefulWidget {
 class _CastVoteState extends State<CastVote> {
   @override
   Widget build(BuildContext context) {
-    List options = Get.arguments.options;
-    var target;
+
+    ElectionModel electionModel = Get.arguments;
+    List options = electionModel.options!;
     return Scaffold(
         body: CustomScrollView(
       slivers: [
@@ -78,14 +79,6 @@ class _CastVoteState extends State<CastVote> {
         SliverToBoxAdapter(
           child: SizedBox(height: 40.0),
         ),
-        // SliverPadding(
-        //   padding: const EdgeInsets.only(left: 30.0, right: 30.0),
-        //   sliver: SliverToBoxAdapter(
-        //     child: Text(
-        //         "You are required to choose only one option and confirm your choice",
-        //         style: TextStyle(color: Colors.grey, fontSize: 18.0)),
-        //   ),
-        // ),
         SliverList(
           delegate: SliverChildBuilderDelegate(
             (BuildContext context, int index) {
@@ -103,11 +96,13 @@ class _CastVoteState extends State<CastVote> {
                       child: ListTile(
                         leading: CircleAvatar(
                             radius: 30.0,
-                            backgroundImage:
-                                NetworkImage(
-                                    !options[index]["avatar"].toString().startsWith('http')?'https://ps.w.org/user-avatar-reloaded/assets/icon-256x256.png':options[index]["avatar"],
-                                )
-                        ),
+                            backgroundImage: NetworkImage(
+                              !options[index]["avatar"]
+                                      .toString()
+                                      .startsWith('http')
+                                  ? 'https://ps.w.org/user-avatar-reloaded/assets/icon-256x256.png'
+                                  : options[index]["avatar"],
+                            )),
                         trailing: Text(
                           "${options[index]["count"].toString()} Votes",
                           style: TextStyle(
@@ -157,7 +152,12 @@ class _CastVoteState extends State<CastVote> {
                                           child: CircleAvatar(
                                               radius: 60.0,
                                               backgroundImage: NetworkImage(
-                                                  !options[index]["avatar"].toString().startsWith('http')?'https://ps.w.org/user-avatar-reloaded/assets/icon-256x256.png':options[index]["avatar"])),
+                                                  !options[index]["avatar"]
+                                                          .toString()
+                                                          .startsWith('http')
+                                                      ? 'https://ps.w.org/user-avatar-reloaded/assets/icon-256x256.png'
+                                                      : options[index]
+                                                          ["avatar"])),
                                         ),
                                       ),
                                       SizedBox(height: 15.0),
@@ -198,105 +198,49 @@ class _CastVoteState extends State<CastVote> {
                                     onPressed: () {
                                       FirebaseFirestore _firestore =
                                           FirebaseFirestore.instance;
-                                      List<ElectionModel> allElections =
-                                          [];
-                                      var usersQuerySnap =
-                                          _firestore.collection("users").get();
-                                      usersQuerySnap.then((usersQuery) {
-                                        var _allUsers = usersQuery.docs
-                                            .map((_user) =>
-                                                Get.find<UserController>()
-                                                    .fromDocumentSnapshot(
-                                                        _user))
-                                            .toList();
+                                      var currentElection=
 
-                                        _allUsers.forEach((user) {
-                                          _firestore
-                                              .collection("users")
-                                              .doc(user.id)
-                                              .collection("elections")
-                                              .get()
-                                              .then((_userElectionsSnap) {
-                                            var userElections = _userElectionsSnap
-                                                .docs
-                                                .map((_election) => Get.find<
-                                                        ElectionController>()
-                                                    .fromDocumentSnapshot(
-                                                        _election))
-                                                .toList();
-                                            userElections.forEach((element) {
-                                              if (element.accessCode ==
-                                                  Get.arguments.accessCode) {
-                                                setState(() {
-                                                  target = element;
-                                                });
-                                                _firestore
-                                                    .collection("users")
-                                                    .doc(element.owner)
-                                                    .collection("elections")
-                                                    .doc(element.id)
-                                                    .update({
-                                                  "options":
-                                                      FieldValue.arrayRemove([
-                                                    {
-                                                      "avatar":
-                                                          element.options![index]
-                                                              ['avatar'],
-                                                      "name":
-                                                          element.options![index]
-                                                              ['name'],
-                                                      "description":
-                                                          element.options![index]
-                                                              ['description'],
-                                                      "count":
-                                                          element.options![index]
-                                                              ['count']
-                                                    }
-                                                  ])
-                                                });
+                                      _firestore
+                                          .collection('users')
+                                          .doc(electionModel.owner)
+                                          .collection('elections')
+                                          .doc(electionModel.id)
+                                          .get()
+                                          .then((DocumentSnapshot document) {
 
-                                                element.options![index]
-                                                    ['count']++;
-                                                var updatedOption =
-                                                    element.options![index];
-
-                                                _firestore
-                                                    .collection("users")
-                                                    .doc(element.owner)
-                                                    .collection("elections")
-                                                    .doc(element.id)
-                                                    .update({
-                                                  "options":
-                                                      FieldValue.arrayUnion([
-                                                    {
-                                                      "avatar": updatedOption[
-                                                          'avatar'],
-                                                      "name":
-                                                          updatedOption['name'],
-                                                      "description":
-                                                          updatedOption[
-                                                              'description'],
-                                                      "count":
-                                                          updatedOption['count']
-                                                    }
-                                                  ])
-                                                }).then((value) {
-                                                  Get.to(RealtimeResult(),
-                                                      arguments: target);
-                                                });
+                                        if(document.exists){
+                                          var voted = List.from(document['voted']);
+                                          if(!voted.contains(Get.find<UserController>().user!.id)){
+                                            if(document['accessCode'] == electionModel.accessCode){
+                                              var options = List.from(document['options']);
+                                              if (options != null && options.length > index){
+                                                var currentCount = options[index]['count'];
+                                                options[index]['count'] = currentCount + 1;
                                               }
-                                            });
-                                            // allElections.forEach((election) {
-                                            //   print(Get.arguments.name);
-                                            //   if (election.accessCode ==
-                                            //       Get.arguments.accessCode) {
-                                            //   } else {
-                                            //     print("NOT FOUND YET");
-                                            //   }
-                                            // });
-                                          });
-                                        });
-                                        //print("All elections $allElections");
+                                              _firestore
+                                                  .collection("users")
+                                                  .doc(electionModel.owner)
+                                                  .collection("elections")
+                                                  .doc(electionModel.id)
+                                                  .update({
+                                                "options":options,
+                                                'voted':FieldValue.arrayUnion([Get.find<UserController>().user.id])
+
+                                              }).then((value) {
+                                                Get.off(RealtimeResult(),
+                                                    arguments: {
+                                                      'owner_uid':electionModel.owner,
+                                                      'election_id':electionModel.id
+                                                    });
+                                              });
+                                            }
+                                          }else{
+                                            Get.back();
+                                            Get.snackbar(
+                                                'Election', 'Already voted'
+                                            );
+                                          }
+                                        }
                                       });
                                     },
                                     icon: Icon(Icons.how_to_vote),
